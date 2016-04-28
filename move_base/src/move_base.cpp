@@ -983,6 +983,7 @@ namespace move_base {
 
           //we at least want to give the robot some time to stop oscillating after executing the behavior
           last_oscillation_reset_ = ros::Time::now();
+          last_valid_plan_ = ros::Time::now(); //after clearing we should give the same time for planning again.
 
           //we'll check if the recovery behavior actually worked
           ROS_DEBUG_NAMED("move_base_recovery","Going back to planning state");
