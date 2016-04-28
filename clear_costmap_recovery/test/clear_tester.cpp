@@ -21,7 +21,7 @@ void testClearBehavior(std::string name,
     
     std::vector<std::string> clearable_layers;
     if(obstacles)
-        clearable_layers.push_back( std::string("obstacles") );
+        clearable_layers.push_back( std::string("obstacle_layer") );
     if(static_map)
         clearable_layers.push_back( std::string("static_map") );
         
