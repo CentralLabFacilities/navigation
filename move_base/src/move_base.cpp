@@ -358,6 +358,7 @@ namespace move_base {
 
     //first try to make a plan to the exact desired goal
     std::vector<geometry_msgs::PoseStamped> global_plan;
+    bool found_legal = true;
     if(!planner_->makePlan(start, req.goal, global_plan) || global_plan.empty()){
       ROS_DEBUG_NAMED("move_base","Failed to find a plan to exact goal of (%.2f, %.2f), searching for a feasible goal within tolerance", 
           req.goal.pose.position.x, req.goal.pose.position.y);
@@ -416,7 +417,7 @@ namespace move_base {
       resp.plan.poses[i] = global_plan[i];
     }
 
-    return true;
+    return found_legal;
   }
 
   MoveBase::~MoveBase(){
