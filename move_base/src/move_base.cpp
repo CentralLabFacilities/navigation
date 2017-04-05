@@ -366,7 +366,7 @@ namespace move_base {
       //search outwards for a feasible goal within the specified tolerance
       geometry_msgs::PoseStamped p;
       p = req.goal;
-      bool found_legal = false;
+      found_legal = false;
       float resolution = planner_costmap_ros_->getCostmap()->getResolution();
       float search_increment = resolution*3.0;
       if(req.tolerance > 0.0 && req.tolerance < search_increment) search_increment = req.tolerance;
