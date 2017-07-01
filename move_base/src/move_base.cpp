@@ -783,10 +783,12 @@ namespace move_base {
     move_base_msgs::MoveBaseFeedback feedback;
     feedback.base_position = current_position;
     if(new_global_plan_){
+        ROS_INFO("setting replan to 1");
         feedback.replan = 1;
     } else {
         feedback.replan = 0;
     }
+    ROS_INFO("publishing MoveBase Feedback");
     as_->publishFeedback(feedback);
 
     //check to see if we've moved far enough to reset our oscillation timeout
