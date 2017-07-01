@@ -793,6 +793,11 @@ namespace move_base {
     //push the feedback out
     move_base_msgs::MoveBaseFeedback feedback;
     feedback.base_position = current_position;
+    if(new_global_plan_){
+        feedback.replan = 1;
+    } else {
+        feedback.replan = 0;
+    }
     as_->publishFeedback(feedback);
 
     //check to see if we've moved far enough to reset our oscillation timeout
