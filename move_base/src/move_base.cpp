@@ -786,6 +786,7 @@ namespace move_base {
         ROS_INFO("setting replan to 1");
         feedback.replan = 1;
     } else {
+        ROS_INFO("setting replan to 0");
         feedback.replan = 0;
     }
     ROS_INFO("publishing MoveBase Feedback");
