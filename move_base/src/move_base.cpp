@@ -567,12 +567,38 @@ namespace move_base {
       lock.unlock();
       ROS_DEBUG_NAMED("move_base_plan_thread","Planning...");
 
+      double oldPlanDist = 0;
+      ROS_INFO("old plan size: %d",planner_plan_->size());
+      for(size_t i = 1; i<(planner_plan_->size()); ++i) {
+          oldPlanDist = oldPlanDist + distance(planner_plan_->at(i-1),planner_plan_->at(i));
+      }
+      ROS_INFO("old plan distance: %f",oldPlanDist);
       //run planner
       planner_plan_->clear();
       bool gotPlan = n.ok() && makePlan(temp_goal, *planner_plan_);
 
       if(gotPlan){
         ROS_DEBUG_NAMED("move_base_plan_thread","Got Plan with %zu points!", planner_plan_->size());
+
+        double newPlanDist = 0;
+        ROS_INFO("new plan size: %d",planner_plan_->size());
+        for(int i = 1; i<(planner_plan_->size()); ++i) {
+            newPlanDist = newPlanDist + distance(planner_plan_->at(i-1),planner_plan_->at(i));
+        }
+        ROS_INFO("new plan distance: %f",newPlanDist);
+
+        if((newPlanDist > oldPlanDist + 5) && oldPlanDist != 0) {
+            //push the feedback out
+            move_base_msgs::MoveBaseFeedback feedback;
+            geometry_msgs::PoseStamped current_position;
+            feedback.base_position = current_position;
+            ROS_INFO("setting replan to 1");
+            feedback.replan = 1;
+
+            ROS_INFO("publishing MoveBase Feedback");
+            as_->publishFeedback(feedback);
+        }
+
         //pointer swap the plans under mutex (the controller will pull from latest_plan_)
         std::vector<geometry_msgs::PoseStamped>* temp_plan = planner_plan_;
 
@@ -949,14 +975,6 @@ namespace move_base {
           last_valid_plan_ = ros::Time::now();
           planning_retries_ = 0;
 
-          //push the feedback out
-          move_base_msgs::MoveBaseFeedback feedback;
-          feedback.base_position = current_position;
-          ROS_INFO("setting replan to 1");
-          feedback.replan = 1;
-
-          ROS_INFO("publishing MoveBase Feedback");
-          as_->publishFeedback(feedback);
           state_ = PLANNING;
 
           //update the index of the next recovery behavior that we'll try
