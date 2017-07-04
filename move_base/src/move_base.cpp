@@ -568,8 +568,8 @@ namespace move_base {
 
       double oldPlanDist = 0;
       ROS_INFO("old plan size: %d",planner_plan_->size());
-      for(int i = 0; i<(planner_plan_->size()-1); ++i) {
-          oldPlanDist = oldPlanDist + distance(planner_plan_->at(i),planner_plan_->at(i+1));
+      for(size_t i = 1; i<(planner_plan_->size()); ++i) {
+          oldPlanDist = oldPlanDist + distance(planner_plan_->at(i-1),planner_plan_->at(i));
       }
       ROS_INFO("old plan distance: %f",oldPlanDist);
       //run planner
@@ -581,8 +581,8 @@ namespace move_base {
 
         double newPlanDist = 0;
         ROS_INFO("new plan size: %d",planner_plan_->size());
-        for(int i = 0; i<(planner_plan_->size()-1); ++i) {
-            newPlanDist = newPlanDist + distance(planner_plan_->at(i),planner_plan_->at(i+1));
+        for(int i = 1; i<(planner_plan_->size()); ++i) {
+            newPlanDist = newPlanDist + distance(planner_plan_->at(i-1),planner_plan_->at(i));
         }
         ROS_INFO("new plan distance: %f",newPlanDist);
 
