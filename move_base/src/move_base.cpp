@@ -779,16 +779,9 @@ namespace move_base {
     geometry_msgs::PoseStamped current_position;
     tf::poseStampedTFToMsg(global_pose, current_position);
 
-    //push the feedback out
     move_base_msgs::MoveBaseFeedback feedback;
     feedback.base_position = current_position;
-    if(new_global_plan_){
-        ROS_INFO("setting replan to 1");
-        feedback.replan = 1;
-    } else {
-        ROS_INFO("setting replan to 0");
-        feedback.replan = 0;
-    }
+    feedback.replan = 0;
     ROS_INFO("publishing MoveBase Feedback");
     as_->publishFeedback(feedback);
 
@@ -938,6 +931,15 @@ namespace move_base {
 
           //we'll check if the recovery behavior actually worked
           ROS_DEBUG_NAMED("move_base_recovery","Going back to planning state");
+
+          //push the feedback out
+          move_base_msgs::MoveBaseFeedback feedback;
+          feedback.base_position = current_position;
+          ROS_INFO("setting replan to 1");
+          feedback.replan = 1;
+
+          ROS_INFO("publishing MoveBase Feedback");
+          as_->publishFeedback(feedback);
           state_ = PLANNING;
 
           //update the index of the next recovery behavior that we'll try
