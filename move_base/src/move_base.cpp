@@ -567,7 +567,8 @@ namespace move_base {
       ROS_DEBUG_NAMED("move_base_plan_thread","Planning...");
 
       double oldPlanDist = 0;
-      for(int i = 0; i<planner_plan_->size()-1; ++i) {
+      ROS_INFO("old plan size: %d",planner_plan_->size());
+      for(int i = 0; i<(planner_plan_->size()-1); ++i) {
           oldPlanDist = oldPlanDist + distance(planner_plan_->at(i),planner_plan_->at(i+1));
       }
       ROS_INFO("old plan distance: %f",oldPlanDist);
@@ -579,7 +580,8 @@ namespace move_base {
         ROS_DEBUG_NAMED("move_base_plan_thread","Got Plan with %zu points!", planner_plan_->size());
 
         double newPlanDist = 0;
-        for(int i = 0; i<planner_plan_->size()-1; ++i) {
+        ROS_INFO("new plan size: %d",planner_plan_->size());
+        for(int i = 0; i<(planner_plan_->size()-1); ++i) {
             newPlanDist = newPlanDist + distance(planner_plan_->at(i),planner_plan_->at(i+1));
         }
         ROS_INFO("new plan distance: %f",newPlanDist);
