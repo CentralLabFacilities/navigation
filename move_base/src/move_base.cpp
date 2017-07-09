@@ -639,6 +639,7 @@ namespace move_base {
 
     //we have a goal so start the planner
     boost::unique_lock<boost::recursive_mutex> lock(planner_mutex_);
+    planner_plan_->clear();
     planner_goal_ = goal;
     runPlanner_ = true;
     planner_cond_.notify_one();
