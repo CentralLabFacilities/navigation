@@ -591,9 +591,8 @@ namespace move_base {
             move_base_msgs::MoveBaseFeedback feedback;
             geometry_msgs::PoseStamped current_position;
             feedback.base_position = current_position;
-            ROS_DEBUG_NAMED("setting replan to %d", 1);
+            ROS_DEBUG_NAMED("setting replan to", "1");
             feedback.replan = 1;
-            // ROS_DEBUG_NAMED("publishing MoveBase Feedback");
             as_->publishFeedback(feedback);
         }
 
