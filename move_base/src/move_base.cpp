@@ -807,7 +807,7 @@ namespace move_base {
     move_base_msgs::MoveBaseFeedback feedback;
     feedback.base_position = current_position;
     feedback.replan = 0;
-    ROS_INFO("publishing MoveBase Feedback");
+    ROS_DEBUG_NAMED("publishing MoveBase Feedback", "");
     as_->publishFeedback(feedback);
 
     //check to see if we've moved far enough to reset our oscillation timeout
