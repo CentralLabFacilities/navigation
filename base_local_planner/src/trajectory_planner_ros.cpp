@@ -97,11 +97,12 @@ namespace base_local_planner {
       rot_stopped_velocity_ = 1e-2;
       trans_stopped_velocity_ = 1e-2;
       double sim_time, sim_granularity, angular_sim_granularity;
-      int vx_samples, vtheta_samples;
+      int vx_samples, vy_samples, vtheta_samples;
       double pdist_scale, gdist_scale, occdist_scale, heading_lookahead, oscillation_reset_dist, escape_reset_dist, escape_reset_theta;
       bool holonomic_robot, dwa, simple_attractor, heading_scoring;
       double heading_scoring_timestep;
       double max_vel_x, min_vel_x;
+      double max_vel_y, min_vel_y;
       double backup_vel;
       double stop_time_buffer;
       std::string world_model_type;
@@ -160,6 +161,7 @@ namespace base_local_planner {
       private_nh.param("sim_granularity", sim_granularity, 0.025);
       private_nh.param("angular_sim_granularity", angular_sim_granularity, sim_granularity);
       private_nh.param("vx_samples", vx_samples, 3);
+      private_nh.param("vy_samples", vy_samples, 3);
       private_nh.param("vtheta_samples", vtheta_samples, 20);
 
       private_nh.param("path_distance_bias", pdist_scale, 0.6);
@@ -190,12 +192,15 @@ namespace base_local_planner {
       private_nh.param("holonomic_robot", holonomic_robot, true);
       private_nh.param("max_vel_x", max_vel_x, 0.5);
       private_nh.param("min_vel_x", min_vel_x, 0.1);
+      private_nh.param("max_vel_y", max_vel_y, 0.5);
+      private_nh.param("min_vel_y", min_vel_y, 0.1);
 
-      double max_rotational_vel;
-      private_nh.param("max_rotational_vel", max_rotational_vel, 1.0);
+      double max_rotational_vel, min_rotational_vel;
+      private_nh.param("max_vel_theta", max_rotational_vel, 1.0);
       max_vel_th_ = max_rotational_vel;
-      min_vel_th_ = -1.0 * max_rotational_vel;
-      private_nh.param("min_in_place_rotational_vel", min_in_place_vel_th_, 0.4);
+      private_nh.param("min_vel_theta", min_rotational_vel, -1.0);
+      min_vel_th_ = min_rotational_vel;
+      private_nh.param("min_in_place_vel_theta", min_in_place_vel_th_, 0.4);
       reached_goal_ = false;
       backup_vel = -0.1;
       if(private_nh.getParam("backup_vel", backup_vel))
@@ -228,9 +233,9 @@ namespace base_local_planner {
       footprint_spec_ = costmap_ros_->getRobotFootprint();
 
       tc_ = new TrajectoryPlanner(*world_model_, *costmap_, footprint_spec_,
-          acc_lim_x_, acc_lim_y_, acc_lim_theta_, sim_time, sim_granularity, vx_samples, vtheta_samples, pdist_scale,
+          acc_lim_x_, acc_lim_y_, acc_lim_theta_, sim_time, sim_granularity, vx_samples, vy_samples, vtheta_samples, pdist_scale,
           gdist_scale, occdist_scale, heading_lookahead, oscillation_reset_dist, escape_reset_dist, escape_reset_theta, holonomic_robot,
-          max_vel_x, min_vel_x, max_vel_th_, min_vel_th_, min_in_place_vel_th_, backup_vel,
+          max_vel_x, min_vel_x, max_vel_y, min_vel_y, max_vel_th_, min_vel_th_, min_in_place_vel_th_, backup_vel,
           dwa, heading_scoring, heading_scoring_timestep, meter_scoring, simple_attractor, y_vels, stop_time_buffer, sim_period_, angular_sim_granularity);
 
       map_viz_.initialize(name, global_frame_, boost::bind(&TrajectoryPlanner::getCellCosts, tc_, _1, _2, _3, _4, _5, _6));
@@ -315,10 +320,8 @@ namespace base_local_planner {
     cmd_vel.linear.x = 0;
     cmd_vel.linear.y = 0;
     double ang_diff = angles::shortest_angular_distance(yaw, goal_th);
-
-    double v_theta_samp = ang_diff > 0.0 ? std::min(max_vel_th_,
-        std::max(min_in_place_vel_th_, ang_diff)) : std::max(min_vel_th_,
-        std::min(-1.0 * min_in_place_vel_th_, ang_diff));
+    double v_theta_samp = ang_diff > 0.0 ? std::min(max_vel_th_, std::max(min_in_place_vel_th_, ang_diff))
+                                         : std::max(min_vel_th_, std::min(-1.0 * min_in_place_vel_th_, ang_diff));
 
     //take the acceleration limits of the robot into account
     double max_acc_vel = fabs(vel_yaw) + acc_lim_theta_ * sim_period_;
@@ -424,6 +427,7 @@ namespace base_local_planner {
       //if the user wants to latch goal tolerance, if we ever reach the goal location, we'll
       //just rotate in place
       if (latch_xy_goal_tolerance_) {
+        ROS_DEBUG_NAMED("trajectory_planner_ros","Latching to goal");
         xy_tolerance_latch_ = true;
       }
 
@@ -476,6 +480,7 @@ namespace base_local_planner {
 
     //compute what trajectory to drive along
     Trajectory path = tc_->findBestPath(global_pose, robot_vel, drive_cmds);
+    ROS_DEBUG_NAMED("trajectory_planner_ros", "Traj: %.2f; %.2f; %.2f", path.xv_, path.yv_,path.thetav_);
 
     map_viz_.publishCostCloud(costmap_);
     /* For timing uncomment
@@ -490,6 +495,7 @@ namespace base_local_planner {
     cmd_vel.linear.x = drive_cmds.getOrigin().getX();
     cmd_vel.linear.y = drive_cmds.getOrigin().getY();
     cmd_vel.angular.z = tf::getYaw(drive_cmds.getRotation());
+    ROS_DEBUG_NAMED("trajectory_planner_ros", "cmd_vel angular z: %.2f", cmd_vel.angular.z);
 
     //if we cannot move... tell someone
     if (path.cost_ < 0) {
@@ -508,6 +514,7 @@ namespace base_local_planner {
     for (unsigned int i = 0; i < path.getPointsSize(); ++i) {
       double p_x, p_y, p_th;
       path.getPoint(i, p_x, p_y, p_th);
+      //ROS_DEBUG_NAMED("trajectory_planner_ros", "Path point: %.2f; %.2f; %.2f", p_x,p_y,p_th);
       tf::Stamped<tf::Pose> p =
           tf::Stamped<tf::Pose>(tf::Pose(
               tf::createQuaternionFromYaw(p_th),

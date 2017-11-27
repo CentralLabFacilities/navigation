@@ -82,6 +82,7 @@ namespace base_local_planner {
        * @param sim_time The number of seconds to "roll-out" each trajectory
        * @param sim_granularity The distance between simulation points should be small enough that the robot doesn't hit things
        * @param vx_samples The number of trajectories to sample in the x dimension
+       * @param vy_samples The number of trajectories to sample in the y dimension
        * @param vtheta_samples The number of trajectories to sample in the theta dimension
        * @param pdist_scale A scaling factor for how close the robot should stay to the path
        * @param gdist_scale A scaling factor for how aggresively the robot should pursue a local goal
@@ -93,6 +94,8 @@ namespace base_local_planner {
        * @param holonomic_robot Set this to true if the robot being controlled can take y velocities and false otherwise
        * @param max_vel_x The maximum x velocity the controller will explore
        * @param min_vel_x The minimum x velocity the controller will explore
+       * @param max_vel_y The maximum y velocity the controller will explore
+       * @param min_vel_y The minimum y velocity the controller will explore
        * @param max_vel_th The maximum rotational velocity the controller will explore
        * @param min_vel_th The minimum rotational velocity the controller will explore
        * @param min_in_place_vel_th The absolute value of the minimum in-place rotational velocity the controller will explore
@@ -110,12 +113,13 @@ namespace base_local_planner {
           std::vector<geometry_msgs::Point> footprint_spec,
           double acc_lim_x = 1.0, double acc_lim_y = 1.0, double acc_lim_theta = 1.0,
           double sim_time = 1.0, double sim_granularity = 0.025, 
-          int vx_samples = 20, int vtheta_samples = 20,
+          int vx_samples = 20, int vy_samples = 20, int vtheta_samples = 20,
           double pdist_scale = 0.6, double gdist_scale = 0.8, double occdist_scale = 0.2,
           double heading_lookahead = 0.325, double oscillation_reset_dist = 0.05, 
           double escape_reset_dist = 0.10, double escape_reset_theta = M_PI_2,
           bool holonomic_robot = true,
-          double max_vel_x = 0.5, double min_vel_x = 0.1, 
+          double max_vel_x = 0.5, double min_vel_x = 0.1,
+          double max_vel_y = 0.5, double min_vel_y = 0.1,
           double max_vel_th = 1.0, double min_vel_th = -1.0, double min_in_place_vel_th = 0.4,
           double backup_vel = -0.1,
           bool dwa = false, bool heading_scoring = false, double heading_scoring_timestep = 0.1,
@@ -287,6 +291,7 @@ namespace base_local_planner {
       double angular_sim_granularity_; ///< @brief The distance between angular simulation points
 
       int vx_samples_; ///< @brief The number of samples we'll take in the x dimenstion of the control space
+      int vy_samples_; ///< @brief The number of samples we'll take in the y dimenstion of the control space
       int vtheta_samples_; ///< @brief The number of samples we'll take in the theta dimension of the control space
 
       double pdist_scale_, gdist_scale_, occdist_scale_; ///< @brief Scaling factors for the controller's cost function
@@ -302,7 +307,7 @@ namespace base_local_planner {
       double escape_reset_dist_, escape_reset_theta_; ///< @brief The distance the robot must travel before it can leave escape mode
       bool holonomic_robot_; ///< @brief Is the robot holonomic or not? 
       
-      double max_vel_x_, min_vel_x_, max_vel_th_, min_vel_th_, min_in_place_vel_th_; ///< @brief Velocity limits for the controller
+      double max_vel_x_, min_vel_x_, max_vel_y_, min_vel_y_, max_vel_th_, min_vel_th_, min_in_place_vel_th_; ///< @brief Velocity limits for the controller
 
       double backup_vel_; ///< @brief The velocity to use while backing up
 
