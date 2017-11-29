@@ -560,13 +560,12 @@ namespace base_local_planner{
     double max_vel_x = max_vel_x_, max_vel_y = max_vel_y_, max_vel_theta;
     double min_vel_x, min_vel_theta, min_vel_y;
 
-    ROS_DEBUG_NAMED("trajectory_planner_ros","max_vel_y 1: %.2f", max_vel_y);
+    ROS_DEBUG_NAMED("trajectory_planner_ros","max_vel_y_ : %.2f; min_vel_y_ : %.2f", max_vel_y_, min_vel_y_);
     if( final_goal_position_valid_ ){
           double final_goal_dist = hypot( final_goal_x_ - x, final_goal_y_ - y );
           max_vel_x = min( max_vel_x, final_goal_dist / sim_time_ );
           max_vel_y = min( max_vel_y, final_goal_dist / sim_time_ ); //Maybe?
         }
-        ROS_DEBUG_NAMED("trajectory_planner_ros","max_vel_y 2: %.2f", max_vel_y);
         //should we use the dynamic window approach?
         if (dwa_) {
           max_vel_x = max(min(max_vel_x, vx + acc_x * sim_period_), min_vel_x_);
@@ -587,7 +586,6 @@ namespace base_local_planner{
           max_vel_theta = min(max_vel_th_, vtheta + acc_theta * sim_time_);
           min_vel_theta = max(min_vel_th_, vtheta - acc_theta * sim_time_);
     }
-    ROS_DEBUG_NAMED("trajectory_planner_ros","max_vel_y 3: %.2f", max_vel_y);
 
     //we want to sample the velocity space regularly
     double dvx = (max_vel_x - min_vel_x) / (vx_samples_ - 1);

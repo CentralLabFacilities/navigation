@@ -119,7 +119,7 @@ namespace base_local_planner {
           double escape_reset_dist = 0.10, double escape_reset_theta = M_PI_2,
           bool holonomic_robot = true,
           double max_vel_x = 0.5, double min_vel_x = 0.1,
-          double max_vel_y = 0.5, double min_vel_y = 0.1,
+          double max_vel_y = 0.5, double min_vel_y = -0.5,
           double max_vel_th = 1.0, double min_vel_th = -1.0, double min_in_place_vel_th = 0.4,
           double backup_vel = -0.1,
           bool dwa = false, bool heading_scoring = false, double heading_scoring_timestep = 0.1,
