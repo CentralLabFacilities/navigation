@@ -83,6 +83,7 @@ namespace base_local_planner{
       pdist_scale_ = config.pdist_scale;
       gdist_scale_ = config.gdist_scale;
       occdist_scale_ = config.occdist_scale;
+      heading_scale_ = config.heading_scale;
 
       if (meter_scoring_) {
         //if we use meter scoring, then we want to multiply the biases by the resolution of the costmap
@@ -90,6 +91,7 @@ namespace base_local_planner{
         gdist_scale_ *= resolution;
         pdist_scale_ *= resolution;
         occdist_scale_ *= resolution;
+        heading_scale_ *= resolution;
       }
 
       oscillation_reset_dist_ = config.oscillation_reset_dist;
@@ -153,7 +155,7 @@ namespace base_local_planner{
       double acc_lim_x, double acc_lim_y, double acc_lim_theta,
       double sim_time, double sim_granularity,
       int vx_samples, int vy_samples, int vtheta_samples,
-      double pdist_scale, double gdist_scale, double occdist_scale,
+      double pdist_scale, double gdist_scale, double occdist_scale, double heading_scale,
       double heading_lookahead, double oscillation_reset_dist,
       double escape_reset_dist, double escape_reset_theta,
       bool holonomic_robot,
@@ -169,7 +171,7 @@ namespace base_local_planner{
     world_model_(world_model), footprint_spec_(footprint_spec),
     sim_time_(sim_time), sim_granularity_(sim_granularity), angular_sim_granularity_(angular_sim_granularity),
     vx_samples_(vx_samples), vy_samples_(vy_samples), vtheta_samples_(vtheta_samples),
-    pdist_scale_(pdist_scale), gdist_scale_(gdist_scale), occdist_scale_(occdist_scale),
+    pdist_scale_(pdist_scale), gdist_scale_(gdist_scale), occdist_scale_(occdist_scale), heading_scale_(heading_scale),
     acc_lim_x_(acc_lim_x), acc_lim_y_(acc_lim_y), acc_lim_theta_(acc_lim_theta),
     prev_x_(0), prev_y_(0), escape_x_(0), escape_y_(0), escape_theta_(0), heading_lookahead_(heading_lookahead),
     oscillation_reset_dist_(oscillation_reset_dist), escape_reset_dist_(escape_reset_dist),
@@ -329,7 +331,6 @@ namespace base_local_planner{
           (y_i - global_plan_[global_plan_.size() -1].pose.position.y) *
           (y_i - global_plan_[global_plan_.size() -1].pose.position.y);
       } else {
-
         bool update_path_and_goal_distances = true;
 
         // with heading scoring, we take into account heading diff, and also only score
@@ -378,7 +379,7 @@ namespace base_local_planner{
     ROS_DEBUG_NAMED("trajectory_planner_ros", "OccCost: %f, path_dist: %.2f, goal_dist: %.2f, heading_diff: %.2f", occ_cost, path_dist, goal_dist, heading_diff);
     double cost = pdist_scale_ * path_dist + goal_dist * gdist_scale_ + occdist_scale_ * occ_cost;
     if (heading_scoring_) {
-      cost += 10 * heading_diff;
+      cost += heading_scale_ * heading_diff;
     }
     traj.cost_ = cost;
   }
