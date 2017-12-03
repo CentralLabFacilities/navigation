@@ -447,7 +447,7 @@ namespace base_local_planner {
         //we need to call the next two lines to make sure that the trajectory
         //planner updates its path distance and goal distance grids
         tc_->updatePlan(transformed_plan);
-        Trajectory path = tc_->findBestPath(global_pose, robot_vel, drive_cmds);
+        Trajectory path = tc_->findBestPath(global_pose, robot_vel, drive_cmds, goal_th);
         map_viz_.publishCostCloud(costmap_);
 
         //copy over the odometry information
@@ -481,7 +481,7 @@ namespace base_local_planner {
     tc_->updatePlan(transformed_plan);
 
     //compute what trajectory to drive along
-    Trajectory path = tc_->findBestPath(global_pose, robot_vel, drive_cmds);
+    Trajectory path = tc_->findBestPath(global_pose, robot_vel, drive_cmds, goal_th);
     ROS_DEBUG_NAMED("trajectory_planner_ros", "Traj: %.2f; %.2f; %.2f", path.xv_, path.yv_,path.thetav_);
 
     map_viz_.publishCostCloud(costmap_);

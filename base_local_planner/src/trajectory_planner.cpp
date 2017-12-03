@@ -282,6 +282,12 @@ namespace base_local_planner{
     double occ_cost = 0.0;
     double heading_diff = 0.0;
 
+    //compute current distance from robot to goal
+    unsigned int cur_x, cur_y;
+    costmap_.worldToMap(x, y, cur_x, cur_y);
+    double robot_dist_to_goal = goal_map_(cur_x, cur_y).target_dist;
+    ROS_DEBUG_NAMED("trajectory_planner_ros","current robot dist to goal: %.2f", robot_dist_to_goal);
+
     for(int i = 0; i < num_steps; ++i){
       //get map coordinates of a point
       unsigned int cell_x, cell_y;
@@ -337,11 +343,17 @@ namespace base_local_planner{
         // path and goal distance for one point of the trajectory
         if (heading_scoring_) {
           if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
-            heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+            if(true) {//robot_dist_to_goal >= 10) { //todo make param
+                heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+              } else {
+                ROS_DEBUG_NAMED("trajectory_planner_ros","new heading diff: heading: %.2f, goal_th: %.2f", theta_i, goal_th_); // todo remove
+                heading_diff = fabs(angles::shortest_angular_distance(theta_i, goal_th_));
+              }
+            }
           } else {
             update_path_and_goal_distances = false;
           }
-        }
+
 
         if (update_path_and_goal_distances) {
           //update path and goal distances
@@ -705,207 +717,9 @@ namespace base_local_planner{
     else {
         ROS_DEBUG_NAMED("trajectory_planner_ros", "WE ARE ESCAPING!!!!!!1111");
     }
-    //next we want to generate trajectories for rotating in place
-    vtheta_samp = min_vel_theta;
-    vx_samp = 0.0;
-    vy_samp = 0.0;
-
-    //let's try to rotate toward open space
-    double heading_dist = DBL_MAX;
-
-    for(int i = 0; i < vtheta_samples_; ++i) {
-      //enforce a minimum rotational velocity because the base can't handle small in-place rotations
-      double vtheta_samp_limited = vtheta_samp > 0 ? max(vtheta_samp, min_in_place_vel_th_)
-        : min(vtheta_samp, -1.0 * min_in_place_vel_th_);
-
-      ROS_DEBUG_NAMED("trajectory_planner", "Sampling in place - vtheta_samp: %.2f; vtheta_samp_lim: %.2f", vtheta_samp, vtheta_samp_limited);
-
-      generateTrajectory(x, y, theta, vx, vy, vtheta, vx_samp, vy_samp, vtheta_samp_limited,
-          acc_x, acc_y, acc_theta, impossible_cost, *comp_traj);
-
-      //if the new trajectory is better... let's take it...
-      //note if we can legally rotate in place we prefer to do that rather than move with y velocity
-      bool comp_has_lower_cost = comp_traj->cost_ >= 0 && (comp_traj->cost_ < best_traj->cost_ || best_traj->cost_ < 0);
-      if(comp_has_lower_cost) { // dafuck is this? --->  && (vtheta_samp > dvtheta || vtheta_samp < -1 * dvtheta)){
-        ROS_DEBUG_NAMED("trajectory_planner", "Found Better Traj");
-        double x_r, y_r, th_r;
-        comp_traj->getEndpoint(x_r, y_r, th_r);
-        x_r += heading_lookahead_ * cos(th_r);
-        y_r += heading_lookahead_ * sin(th_r);
-        unsigned int cell_x, cell_y;
-
-        //make sure that we'll be looking at a legal cell
-        if (costmap_.worldToMap(x_r, y_r, cell_x, cell_y)) {
-          double ahead_gdist = goal_map_(cell_x, cell_y).target_dist;
-          if (ahead_gdist < heading_dist) {
-            //if we haven't already tried rotating left since we've moved forward
-            ROS_DEBUG_NAMED("trajectory_planner", "Stuck Left: %d Stuck Right: %d", stuck_left, stuck_right);
-            if (vtheta_samp < 0){// && !stuck_left) {
-              swap = best_traj;
-              best_traj = comp_traj;
-              comp_traj = swap;
-              heading_dist = ahead_gdist;
-            }
-            //if we haven't already tried rotating right since we've moved forward
-            else if(vtheta_samp > 0){// && !stuck_right) {
-              swap = best_traj;
-              best_traj = comp_traj;
-              comp_traj = swap;
-              heading_dist = ahead_gdist;
-            }
-          }
-        }
-      }
-
-      vtheta_samp += dvtheta;
-    }
 
     //do we have a legal trajectory
     if (best_traj->cost_ >= 0) {
-      // avoid oscillations of in place rotation and in place strafing
-      if ( ! (best_traj->xv_ > 0)) {
-        if (best_traj->thetav_ < 0) {
-          if (rotating_right) {
-            stuck_right = true;
-          }
-          rotating_right = true;
-        } else if (best_traj->thetav_ > 0) {
-          if (rotating_left){
-            stuck_left = true;
-          }
-          rotating_left = true;
-        } else if(best_traj->yv_ > 0) {
-          if (strafe_right) {
-            stuck_right_strafe = true;
-          }
-          strafe_right = true;
-        } else if(best_traj->yv_ < 0){
-          if (strafe_left) {
-            stuck_left_strafe = true;
-          }
-          strafe_left = true;
-        }
-
-        //set the position we must move a certain distance away from
-        prev_x_ = x;
-        prev_y_ = y;
-      }
-
-      double dist = hypot(x - prev_x_, y - prev_y_);
-      if (dist > oscillation_reset_dist_) {
-        rotating_left = false;
-        rotating_right = false;
-        strafe_left = false;
-        strafe_right = false;
-        stuck_left = false;
-        stuck_right = false;
-        stuck_left_strafe = false;
-        stuck_right_strafe = false;
-      }
-
-      dist = hypot(x - escape_x_, y - escape_y_);
-      if(dist > escape_reset_dist_ ||
-          fabs(angles::shortest_angular_distance(escape_theta_, theta)) > escape_reset_theta_){
-        escaping_ = false;
-      }
-
-      return *best_traj;
-    }
-
-    /*only explore y velocities with holonomic robots
-    if (holonomic_robot_) {
-      //if we can't rotate in place or move forward... maybe we can move sideways and rotate
-      vtheta_samp = min_vel_theta;
-      vx_samp = 0.0;
-
-      //loop through all y velocities
-      for(unsigned int i = 0; i < y_vels_.size(); ++i){
-        vtheta_samp = 0;
-        vy_samp = y_vels_[i];
-        //sample completely horizontal trajectories
-        generateTrajectory(x, y, theta, vx, vy, vtheta, vx_samp, vy_samp, vtheta_samp,
-            acc_x, acc_y, acc_theta, impossible_cost, *comp_traj);
-
-        //if the new trajectory is better... let's take it
-        if(comp_traj->cost_ >= 0 && (comp_traj->cost_ <= best_traj->cost_ || best_traj->cost_ < 0)){
-          double x_r, y_r, th_r;
-          comp_traj->getEndpoint(x_r, y_r, th_r);
-          x_r += heading_lookahead_ * cos(th_r);
-          y_r += heading_lookahead_ * sin(th_r);
-          unsigned int cell_x, cell_y;
-
-          //make sure that we'll be looking at a legal cell
-          if(costmap_.worldToMap(x_r, y_r, cell_x, cell_y)) {
-            double ahead_gdist = goal_map_(cell_x, cell_y).target_dist;
-            if (ahead_gdist < heading_dist) {
-              //if we haven't already tried strafing left since we've moved forward
-              if (vy_samp > 0 && !stuck_left_strafe) {
-                swap = best_traj;
-                best_traj = comp_traj;
-                comp_traj = swap;
-                heading_dist = ahead_gdist;
-              }
-              //if we haven't already tried rotating right since we've moved forward
-              else if(vy_samp < 0 && !stuck_right_strafe) {
-                swap = best_traj;
-                best_traj = comp_traj;
-                comp_traj = swap;
-                heading_dist = ahead_gdist;
-              }
-            }
-          }
-        }
-      }
-    }*/
-
-    //do we have a legal trajectory
-    if (best_traj->cost_ >= 0) {
-      if (!(best_traj->xv_ > 0)) {
-        if (best_traj->thetav_ < 0) {
-          if (rotating_right){
-            stuck_right = true;
-          }
-          rotating_left = true;
-        } else if(best_traj->thetav_ > 0) {
-          if(rotating_left){
-            stuck_left = true;
-          }
-          rotating_right = true;
-        } else if(best_traj->yv_ > 0) {
-          if(strafe_right){
-            stuck_right_strafe = true;
-          }
-          strafe_left = true;
-        } else if(best_traj->yv_ < 0) {
-          if(strafe_left){
-            stuck_left_strafe = true;
-          }
-          strafe_right = true;
-        }
-
-        //set the position we must move a certain distance away from
-        prev_x_ = x;
-        prev_y_ = y;
-
-      }
-
-      double dist = hypot(x - prev_x_, y - prev_y_);
-      if(dist > oscillation_reset_dist_) {
-        rotating_left = false;
-        rotating_right = false;
-        strafe_left = false;
-        strafe_right = false;
-        stuck_left = false;
-        stuck_right = false;
-        stuck_left_strafe = false;
-        stuck_right_strafe = false;
-      }
-
-      dist = hypot(x - escape_x_, y - escape_y_);
-      if(dist > escape_reset_dist_ || fabs(angles::shortest_angular_distance(escape_theta_, theta)) > escape_reset_theta_) {
-        escaping_ = false;
-      }
-
       ROS_DEBUG_NAMED("trajectory_planner_ros","Best xv: %.2f; Best yv: %.2f; Best thetav: %.2f",best_traj->xv_,best_traj->yv_,best_traj->thetav_);
       return *best_traj;
     }
@@ -929,48 +743,14 @@ namespace base_local_planner{
 
     //we'll allow moving backwards slowly even when the static map shows it as blocked
     best_traj = comp_traj;
-
-    double dist = hypot(x - prev_x_, y - prev_y_);
-    if (dist > oscillation_reset_dist_) {
-      rotating_left = false;
-      rotating_right = false;
-      strafe_left = false;
-      strafe_right = false;
-      stuck_left = false;
-      stuck_right = false;
-      stuck_left_strafe = false;
-      stuck_right_strafe = false;
-    }
-
-    //only enter escape mode when the planner has given a valid goal point
-    if (!escaping_ && best_traj->cost_ > -1.0) {
-      escape_x_ = x;
-      escape_y_ = y;
-      escape_theta_ = theta;
-      escaping_ = true;
-    }
-
-    dist = hypot(x - escape_x_, y - escape_y_);
-
-    if (dist > escape_reset_dist_ ||
-        fabs(angles::shortest_angular_distance(escape_theta_, theta)) > escape_reset_theta_) {
-      escaping_ = false;
-    }
-
-
-    //if the trajectory failed because the footprint hits something, we're still going to back up
-    //if(best_traj->cost_ == -1.0)
-    //  best_traj->cost_ = 1.0;
-    // NO!
-
     return *best_traj;
-
   }
 
   //given the current state of the robot, find a good trajectory
   Trajectory TrajectoryPlanner::findBestPath(tf::Stamped<tf::Pose> global_pose, tf::Stamped<tf::Pose> global_vel,
-      tf::Stamped<tf::Pose>& drive_velocities){
+      tf::Stamped<tf::Pose>& drive_velocities, double goal_th){
 
+    goal_th_ = goal_th;
     Eigen::Vector3f pos(global_pose.getOrigin().getX(), global_pose.getOrigin().getY(), tf::getYaw(global_pose.getRotation()));
     Eigen::Vector3f vel(global_vel.getOrigin().getX(), global_vel.getOrigin().getY(), tf::getYaw(global_vel.getRotation()));
 

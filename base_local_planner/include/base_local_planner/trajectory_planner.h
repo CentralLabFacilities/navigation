@@ -148,7 +148,7 @@ namespace base_local_planner {
        * @return The selected path or trajectory
        */
       Trajectory findBestPath(tf::Stamped<tf::Pose> global_pose, tf::Stamped<tf::Pose> global_vel,
-          tf::Stamped<tf::Pose>& drive_velocities);
+          tf::Stamped<tf::Pose>& drive_velocities, double goal_th);
 
       /**
        * @brief  Update the plan that the controller is following
@@ -282,7 +282,7 @@ namespace base_local_planner {
       bool escaping_; ///< @brief Boolean to keep track of whether we're in escape mode
       bool meter_scoring_;
 
-      double goal_x_,goal_y_; ///< @brief Storage for the local goal the robot is pursuing
+      double goal_x_,goal_y_, goal_th_; ///< @brief Storage for the local goal the robot is pursuing
 
       double final_goal_x_, final_goal_y_; ///< @brief The end position of the plan.
       bool final_goal_position_valid_; ///< @brief True if final_goal_x_ and final_goal_y_ have valid data.  Only false if an empty path is sent.
