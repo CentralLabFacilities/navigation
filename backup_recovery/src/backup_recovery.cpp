@@ -96,17 +96,34 @@ void BackupRecovery::runBehavior(){
     double theta = tf::getYaw(global_pose.getRotation());
 
     double footprint_cost = world_model_->footprintCost(x, y, theta, local_costmap_->getRobotFootprint(), 0.0, 0.0);
-    if(footprint_cost == 0.0){
+    if(footprint_cost >= 0.0){
       ROS_INFO("Backed up into free space, returning");
       return;
     }
+
+    geometry_msgs::Twist weightedTwist;
+    weightedTwist.angular.z = 0.0;
+
+    for (std::vector<geometry_msgs::Point>::iterator it = local_costmap_->getRobotFootprint().begin(); it != local_costmap_->getRobotFootprint().end(); ++it) {
+      double angle = atan2f(it->y,it->x);
+      double dist = sqrtf(powf(it->x, 2) + powf(it->y, 2));
+
+      weightedTwist.linear.x += dist * (it->x * cosf(angle) - it->y * sinf(angle));
+      weightedTwist.linear.y += dist * (it->x * sinf(angle) + it->y * cosf(angle));
+    }
+
+    double tLenght = sqrtf(powf(weightedTwist.linear.x, 2) + powf(weightedTwist.linear.y, 2));
+
+    weightedTwist.linear.x = weightedTwist.linear.x/tLenght * escape_vel_;
+    weightedTwist.linear.y = weightedTwist.linear.y/tLenght * escape_vel_;
 
     geometry_msgs::Twist cmd_vel;
     cmd_vel.linear.x = escape_vel_;
     cmd_vel.linear.y = 0.0;
     cmd_vel.angular.z = 0.0;
 
-    vel_pub.publish(cmd_vel);
+    vel_pub.publish(weightedTwist);
+    ROS_INFO("Generated escape twist: x=%f, y=%f", weightedTwist.linear.x, weightedTwist.linear.y);
 
     r.sleep();
   }

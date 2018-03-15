@@ -44,6 +44,7 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/Point.h>
 #include <angles/angles.h>
+#include <math.h>
 
 namespace backup_recovery{
   /**
