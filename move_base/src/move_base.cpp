@@ -573,15 +573,12 @@ namespace move_base {
       lock.unlock();
       ROS_DEBUG_NAMED("move_base_plan_thread","Planning...");
 
-<<<<<<< HEAD
       double oldPlanDist = 0;
       ROS_INFO("old plan size: %d",planner_plan_->size());
       for(size_t i = 1; i<(planner_plan_->size()); ++i) {
           oldPlanDist = oldPlanDist + distance(planner_plan_->at(i-1),planner_plan_->at(i));
       }
       ROS_INFO("old plan distance: %f",oldPlanDist);
-=======
->>>>>>> ac41d24... Respect planner_frequency intended behavior (#622)
       //run planner
       planner_plan_->clear();
       bool gotPlan = n.ok() && makePlan(temp_goal, *planner_plan_);
@@ -977,12 +974,8 @@ namespace move_base {
 
           //we'll check if the recovery behavior actually worked
           ROS_DEBUG_NAMED("move_base_recovery","Going back to planning state");
-<<<<<<< HEAD
-
-=======
           last_valid_plan_ = ros::Time::now();
           planning_retries_ = 0;
->>>>>>> fa02129... Add a max_planning_retries parameter to move_base [kinetic] (#539)
           state_ = PLANNING;
 
           //update the index of the next recovery behavior that we'll try
