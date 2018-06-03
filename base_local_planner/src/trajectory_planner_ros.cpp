@@ -424,12 +424,13 @@ namespace base_local_planner {
     double goal_th = yaw;
 
     //check to see if we've reached the goal position
+    ROS_INFO_NAMED("trajectory_planner_ros","Distance to goal: %.2f Tolerance: %.2f",getGoalPositionDistance(global_pose, goal_x, goal_y), xy_goal_tolerance_);
     if (xy_tolerance_latch_ || (getGoalPositionDistance(global_pose, goal_x, goal_y) <= xy_goal_tolerance_)) {
 
       //if the user wants to latch goal tolerance, if we ever reach the goal location, we'll
       //just rotate in place
       if (latch_xy_goal_tolerance_) {
-        ROS_DEBUG_NAMED("trajectory_planner_ros","Latching to goal");
+        ROS_INFO_NAMED("trajectory_planner_ros","Latching to goal");
         xy_tolerance_latch_ = true;
       }
 
