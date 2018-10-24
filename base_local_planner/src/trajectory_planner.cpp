@@ -344,16 +344,15 @@ namespace base_local_planner{
         if (heading_scoring_) {
           if (time >= heading_scoring_timestep_ && time < heading_scoring_timestep_ + dt) {
             if(true) {//robot_dist_to_goal >= 10) { //todo make param
-                heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
-              } else {
-                ROS_DEBUG_NAMED("trajectory_planner_ros","new heading diff: heading: %.2f, goal_th: %.2f", theta_i, goal_th_); // todo remove
-                heading_diff = fabs(angles::shortest_angular_distance(theta_i, goal_th_));
-              }
+              heading_diff = headingDiff(cell_x, cell_y, x_i, y_i, theta_i);
+            } else {
+              ROS_DEBUG_NAMED("trajectory_planner_ros","new heading diff: heading: %.2f, goal_th: %.2f", theta_i, goal_th_); // todo remove
+              heading_diff = fabs(angles::shortest_angular_distance(theta_i, goal_th_));
             }
           } else {
             update_path_and_goal_distances = false;
           }
-
+        }
 
         if (update_path_and_goal_distances) {
           //update path and goal distances
@@ -650,8 +649,6 @@ namespace base_local_planner{
           double vy_samp = min_vel_y;
           if(!holonomic_robot_) {
             vy_samp = 0;
-          }
-          if(!holonomic_robot_) {
             generateTrajectory(x, y, theta, vx, vy, vtheta, vx_samp, vy_samp, vtheta_samp,
                                    acc_x, acc_y, acc_theta, impossible_cost, *comp_traj);
 
