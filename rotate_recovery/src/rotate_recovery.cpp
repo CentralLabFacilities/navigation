@@ -98,19 +98,21 @@ void RotateRecovery::runBehavior(){
   tf::Stamped<tf::Pose> global_pose;
   local_costmap_->getRobotPose(global_pose);
 
-  double current_angle = -1.0 * goal_angle_;
+  double current_angle = -1.0 * M_PI;
 
-  bool got_180 = true;
+  bool got_180 = false;
 
-  double start_offset = 0 - angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
+  double start_offset = angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
+  double goal_angle = angles::normalize_angle(start_offset + goal_angle_);
+  
   while(n.ok()){
     local_costmap_->getRobotPose(global_pose);
 
     double norm_angle = angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
-    current_angle = angles::normalize_angle(norm_angle + start_offset);
+    current_angle = angles::normalize_angle(norm_angle - goal_angle);
 
     //compute the distance left to rotate
-    double dist_left = goal_angle_ - current_angle;
+    double dist_left = angles::shortest_angular_distance(norm_angle,goal_angle);
 
     double x = global_pose.getOrigin().x(), y = global_pose.getOrigin().y();
 
