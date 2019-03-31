@@ -114,6 +114,7 @@ void RotateRecovery::runBehavior(){
     double x = global_pose.getOrigin().x(), y = global_pose.getOrigin().y();
 
     //check if that velocity is legal by forward simulating
+    /*
     double sim_angle = 0.0;
     while(sim_angle < dist_left){
       double theta = tf::getYaw(global_pose.getRotation()) + sim_angle;
@@ -126,7 +127,8 @@ void RotateRecovery::runBehavior(){
       }
 
       sim_angle += sim_granularity_;
-    }
+    } Does not make sense. If we cannot rotate in place without collision we already collided. This prevents
+    robot getting unstuck from costmap due to wrong localization.*/
 
     //compute the velocity that will let us stop by the time we reach the goal
     double vel = sqrt(2 * acc_lim_th_ * dist_left);
