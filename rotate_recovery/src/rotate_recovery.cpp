@@ -100,7 +100,7 @@ void RotateRecovery::runBehavior(){
 
   double current_angle = -1.0 * goal_angle_;
 
-  bool got_180 = false;
+  bool got_180 = true;
 
   double start_offset = 0 - angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
   while(n.ok()){
