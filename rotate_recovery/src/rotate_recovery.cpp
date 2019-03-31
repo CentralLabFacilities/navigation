@@ -59,6 +59,7 @@ void RotateRecovery::initialize(std::string name, tf::TransformListener* tf,
     //we'll simulate every degree by default
     private_nh.param("sim_granularity", sim_granularity_, 0.017);
     private_nh.param("frequency", frequency_, 20.0);
+    private_nh.param("goal_angle", goal_angle_, M_PI)
 
     blp_nh.param("acc_lim_th", acc_lim_th_, 3.2);
     blp_nh.param("max_rotational_vel", max_rotational_vel_, 1.0);
@@ -97,7 +98,7 @@ void RotateRecovery::runBehavior(){
   tf::Stamped<tf::Pose> global_pose;
   local_costmap_->getRobotPose(global_pose);
 
-  double current_angle = -1.0 * M_PI;
+  double current_angle = -1.0 * goal_angle_;
 
   bool got_180 = false;
 
@@ -109,7 +110,7 @@ void RotateRecovery::runBehavior(){
     current_angle = angles::normalize_angle(norm_angle + start_offset);
 
     //compute the distance left to rotate
-    double dist_left = M_PI - current_angle;
+    double dist_left = goal_angle_ - current_angle;
 
     double x = global_pose.getOrigin().x(), y = global_pose.getOrigin().y();
 
