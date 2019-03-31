@@ -61,8 +61,8 @@ void RotateRecovery::initialize(std::string name, tf::TransformListener* tf,
     private_nh.param("frequency", frequency_, 20.0);
     private_nh.param("goal_angle", goal_angle_, M_PI);
 
-    blp_nh.param("acc_lim_th", acc_lim_th_, 3.2);
-    blp_nh.param("max_rotational_vel", max_rotational_vel_, 1.0);
+    blp_nh.param("acc_lim_theta", acc_lim_th_, 3.2);
+    blp_nh.param("max_vel_theta", max_rotational_vel_, 1.0);
     blp_nh.param("min_in_place_rotational_vel", min_rotational_vel_, 0.4);
     blp_nh.param("yaw_goal_tolerance", tolerance_, 0.10);
 
