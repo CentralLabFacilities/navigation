@@ -2,19 +2,32 @@
 Changelog for package navigation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.14.3 (2018-03-16)
+1.16.2 (2018-07-31)
 -------------------
-* Merge pull request `#672 <https://github.com/ros-planning/navigation/issues/672>`_ from ros-planning/email_update_kinetic
-  update maintainer email (kinetic)
-* Merge pull request `#648 <https://github.com/ros-planning/navigation/issues/648>`_ from aaronhoy/kinetic_add_ahoy
+
+1.16.1 (2018-07-28)
+-------------------
+
+1.16.0 (2018-07-25)
+-------------------
+* remove robot_pose_ekf, see `#701 <https://github.com/ros-planning/navigation/issues/701>`_
+* Contributors: Michael Ferguson
+
+1.15.2 (2018-03-22)
+-------------------
+* Merge pull request `#673 <https://github.com/ros-planning/navigation/issues/673>`_ from ros-planning/email_update_lunar
+  update maintainer email (lunar)
+* Merge pull request `#649 <https://github.com/ros-planning/navigation/issues/649>`_ from aaronhoy/lunar_add_ahoy
   Add myself as a maintainer.
 * Contributors: Aaron Hoy, Michael Ferguson
 
-1.14.2 (2017-08-14)
+1.15.1 (2017-08-14)
 -------------------
 
-1.14.1 (2017-08-07)
+1.15.0 (2017-08-07)
 -------------------
+* convert packages to format2
+* Contributors: Mikael Arguedas
 
 1.14.0 (2016-05-20)
 -------------------

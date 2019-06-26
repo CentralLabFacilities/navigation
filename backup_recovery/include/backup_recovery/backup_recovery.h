@@ -65,7 +65,7 @@ namespace backup_recovery{
        * @param global_costmap A pointer to the global_costmap used by the navigation stack 
        * @param local_costmap A pointer to the local_costmap used by the navigation stack 
        */
-      void initialize(std::string name, tf::TransformListener* tf, 
+      void initialize(std::string name, tf2_ros::Buffer* tf,
           costmap_2d::Costmap2DROS* global_costmap, costmap_2d::Costmap2DROS* local_costmap);
 
       /**
@@ -82,6 +82,7 @@ namespace backup_recovery{
       costmap_2d::Costmap2DROS* global_costmap_, *local_costmap_;
       costmap_2d::Costmap2D costmap_;
       std::string name_;
+      tf2_ros::Buffer* tf_;
       bool initialized_;
       double escape_vel_, frequency_;
       base_local_planner::CostmapModel* world_model_;

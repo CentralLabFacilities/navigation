@@ -36,6 +36,7 @@
 *********************************************************************/
 #include <backup_recovery/backup_recovery.h>
 #include <pluginlib/class_list_macros.h>
+#include <tf2/utils.h>
 
 //register this planner as a RecoveryBehavior plugin
 PLUGINLIB_DECLARE_CLASS(backup_recovery, BackupRecovery, backup_recovery::BackupRecovery, nav_core::RecoveryBehavior)
@@ -44,10 +45,11 @@ namespace backup_recovery {
 BackupRecovery::BackupRecovery(): global_costmap_(NULL), local_costmap_(NULL),
   initialized_(false), world_model_(NULL) {}
 
-void BackupRecovery::initialize(std::string name, tf::TransformListener* tf,
+void BackupRecovery::initialize(std::string name, tf2_ros::Buffer* tf,
     costmap_2d::Costmap2DROS* global_costmap, costmap_2d::Costmap2DROS* local_costmap){
   if(!initialized_){
     name_ = name;
+    tf_ = tf;
     global_costmap_ = global_costmap;
     local_costmap_ = local_costmap;
 
@@ -87,13 +89,13 @@ void BackupRecovery::runBehavior(){
   ros::NodeHandle n;
   ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
 
-  tf::Stamped<tf::Pose> global_pose;
+  geometry_msgs::PoseStamped global_pose;
 
   while(n.ok()){
     local_costmap_->getRobotPose(global_pose);
 
-    double x = global_pose.getOrigin().x(), y = global_pose.getOrigin().y();
-    double theta = tf::getYaw(global_pose.getRotation());
+    double x = global_pose.pose.position.x, y = global_pose.pose.position.y;
+    double theta = tf2::getYaw(global_pose.pose.orientation);
 
     double footprint_cost = world_model_->footprintCost(x, y, theta, local_costmap_->getRobotFootprint(), 0.0, 0.0);
     if(footprint_cost == 0.0){

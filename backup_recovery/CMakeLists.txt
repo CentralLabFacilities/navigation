@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(backup_recovery)
 
+set (CMAKE_CXX_STANDARD 11)
+
 find_package(catkin REQUIRED
         COMPONENTS
             cmake_modules
             roscpp
-            tf
+            tf2
+            tf2_geometry_msgs
+            tf2_ros
             costmap_2d
             nav_core
             pluginlib
