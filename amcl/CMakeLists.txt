@@ -50,15 +50,15 @@ include_directories(include)
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 include_directories(src/include)
 
-check_include_file(unistd.h HAVE_UNISTD_H)
-if (HAVE_UNISTD_H)
-  add_definitions(-DHAVE_UNISTD_H)
-endif (HAVE_UNISTD_H)
+#check_include_file(unistd.h HAVE_UNISTD_H)
+#if (HAVE_UNISTD_H)
+#  add_definitions(-DHAVE_UNISTD_H)
+#endif (HAVE_UNISTD_H)
 
-check_symbol_exists(drand48 stdlib.h HAVE_DRAND48)
-if (HAVE_DRAND48)
-  add_definitions(-DHAVE_DRAND48)
-endif (HAVE_DRAND48)
+#check_symbol_exists(drand48 stdlib.h HAVE_DRAND48)
+#if (HAVE_DRAND48)
+#  add_definitions(-DHAVE_DRAND48)
+#endif (HAVE_DRAND48)
 
 add_library(amcl_pf
                     src/amcl/pf/pf.c
