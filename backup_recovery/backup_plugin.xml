@@ -1,7 +1,0 @@
-<library path="lib/libbackup_recovery">
-  <class name="backup_recovery/BackupRecovery" type="backup_recovery::BackupRecovery" base_class_type="nav_core::RecoveryBehavior">
-    <description>
-      A recovery behavior that performs backs up into free space
-    </description>
-  </class>
-</library>
