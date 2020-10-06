@@ -106,6 +106,7 @@ add_library(base_local_planner
 add_dependencies(base_local_planner base_local_planner_gencfg)
 add_dependencies(base_local_planner base_local_planner_generate_messages_cpp)
 add_dependencies(base_local_planner nav_msgs_generate_messages_cpp)
+target_include_directories(base_local_planner BEFORE PRIVATE ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
 target_link_libraries(base_local_planner
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
@@ -116,6 +117,7 @@ add_library(trajectory_planner_ros
 	src/trajectory_planner.cpp
 	src/trajectory_planner_ros.cpp)
 add_dependencies(trajectory_planner_ros ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_include_directories(trajectory_planner_ros BEFORE PRIVATE ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION})
 target_link_libraries(trajectory_planner_ros
      base_local_planner)
 
