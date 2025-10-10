@@ -3,6 +3,13 @@ project(navfn)
 
 include(CheckIncludeFile)
 
+set(CMAKE_MODULE_PATH
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake
+    ${CMAKE_MODULE_PATH}
+)
+
+find_package(NETPBM REQUIRED)
+
 find_package(catkin REQUIRED
     COMPONENTS
         cmake_modules
@@ -24,6 +31,7 @@ include_directories(
     include
     ${catkin_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
+    ${NETPBM_INCLUDE_DIR}
 )
 add_definitions(${EIGEN3_DEFINITIONS})
 
@@ -64,7 +72,7 @@ endif (HAVE_SYS_TIME_H)
 
 add_library (navfn src/navfn.cpp src/navfn_ros.cpp)
 target_link_libraries(navfn
-    ${catkin_LIBRARIES}
+    ${catkin_LIBRARIES} ${NETPBM_LIBRARY}
     )
 add_dependencies(navfn ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
@@ -96,10 +104,9 @@ install(FILES bgp_plugin.xml
 # include (FindFLTK)
 include (CheckIncludeFileCXX)
 check_include_file_cxx (FL/Fl.H NAVFN_HAVE_FLTK)
-check_include_file_cxx (pgm.h NAVFN_HAVE_NETPBM)
-message (STATUS "NAVFN_HAVE_FLTK: ${NAVFN_HAVE_FLTK}, NETPBM: ${NAVFN_HAVE_NETPBM}")
+message (STATUS "NAVFN_HAVE_FLTK: ${NAVFN_HAVE_FLTK}, NETPBM: ${NETPBM_FOUND}")
 # Just linking -lfltk is not sufficient on OS X
-if (NAVFN_HAVE_FLTK AND NAVFN_HAVE_NETPBM AND NOT APPLE)
+if (NAVFN_HAVE_FLTK AND NETPBM_FOUND AND NOT APPLE)
   message (STATUS "FLTK found: adding navtest to build")
   add_executable (navtest src/navtest/navtest.cpp src/navtest/navwin.cpp)
   set (FLTK_SKIP_FLUID 1)
@@ -113,28 +120,8 @@ if (NAVFN_HAVE_FLTK AND NAVFN_HAVE_NETPBM AND NOT APPLE)
   endif (FLTK_FOUND)
 else (NAVFN_HAVE_FLTK)
   message (STATUS "FLTK orf NETPBM not found: cannot build navtest")
-endif (NAVFN_HAVE_FLTK AND NAVFN_HAVE_NETPBM AND NOT APPLE)
+endif (NAVFN_HAVE_FLTK AND NETPBM_FOUND AND NOT APPLE)
 
-### For some reason (on cmake-2.4.7 at least) the "check" for pgm.h
-### always succeeds, even if pgm.h is not installed. It seems to be
-### caused by a bug in the rule that attempts to build the C source:
-### instead of directly calling e.g. 'gcc -c
-### /CMakeFiles/CMakeTmp/CheckIncludeFile.c' it goes through some make
-### infrastructure, which reports "Nothing to be done for
-### `CMakeFiles/cmTryCompileExec.dir/build'" and calls that a success.
-###
-### As a workaround we simply force everyone to install libnetpbm
-#
-# include (CheckIncludeFile)
-# check_include_file (pgm.h NAVFN_HAVE_NETPBM)
-# message (STATUS "NAVFN_HAVE_NETPBM: ${NAVFN_HAVE_NETPBM}")
-# if (NAVFN_HAVE_NETPBM)
-#   message (STATUS "found pgm.h")
-#   add_definitions (-DNAVFN_HAVE_NETPBM)
-#target_link_libraries (navfn -lnetpbm)
-# else (NAVFN_HAVE_NETPBM)
-#   message (STATUS "pgm.h not found (optional)")
-# endif (NAVFN_HAVE_NETPBM)
 
 if(CATKIN_ENABLE_TESTING)
   add_subdirectory(test)
